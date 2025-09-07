@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pengeluaran Inti E‑Buyur Market</title>
+  <meta name="description" content="Ringkasan pemasukan, pengeluaran, dan proyeksi saldo E‑Buyur Market. Mobile‑first, siap GitHub Pages." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --bg: #0b1220;         /* dark base */
+      --card: #0f172a;
+      --muted: #93a4bf;
+      --text: #e6edf6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --cyan: #06b6d4;
+      --ring: #3b82f6;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
+      color:var(--text); background:
+        radial-gradient(1200px 600px at -10% -10%, rgba(37,99,235,.15), transparent 60%),
+        radial-gradient(1000px 500px at 110% -10%, rgba(34,197,94,.12), transparent 55%),
+        radial-gradient(900px 450px at 50% 120%, rgba(6,182,212,.12), transparent 55%),
+        var(--bg);
+    }
+    .container{max-width:980px;margin-inline:auto;padding:18px;}
+
+    /* Header */
+    .app-header{
+      position:sticky; top:0; z-index:20; backdrop-filter: saturate(120%) blur(8px);
+      background: linear-gradient(180deg, rgba(11,18,32,.75), rgba(11,18,32,.55));
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .head-inner{display:flex;align-items:center;gap:12px;padding:14px 18px;}
+    .title{font-weight:800;letter-spacing:.2px;font-size: clamp(18px, 3.3vw, 28px)}
+    .title .brand{background: linear-gradient(90deg,#60a5fa,#22d3ee,#34d399); -webkit-background-clip:text;background-clip:text;color:transparent}
+    .pill{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:var(--glass);border:1px solid rgba(255,255,255,.08);font-size:12px;color:var(--muted)}
+    .pill svg{opacity:.9}
+
+    /* Cards & layout */
+    .grid{display:grid;gap:14px}
+    .grid.cols{grid-template-columns: repeat(12,minmax(0,1fr))}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .card .pad{padding:16px}
+    .stat{position:relative; overflow:hidden}
+    .stat .value{font-weight:800; font-size: clamp(20px, 5vw, 32px)}
+    .stat .label{color:var(--muted);font-size:13px}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-size:12px}
+    .chip.income{background: rgba(34,197,94,.12); color:#a7f3d0}
+    .chip.expense{background: rgba(239,68,68,.12); color:#fecaca}
+    .chip.upcoming{background: rgba(245,158,11,.12); color:#fde68a}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+    /* List */
+    .list{display:flex;flex-direction:column}
+    .item{display:grid;grid-template-columns: 1fr auto; gap:8px; padding:12px 4px; border-bottom:1px dashed rgba(255,255,255,.07)}
+    .item:last-child{border-bottom:none}
+    .item .meta{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+    .item .meta .dot{width:10px;height:10px;border-radius:50%}
+    .item .note{font-weight:600}
+    .amt{font-weight:800}
+    .amt.in{color:#86efac}
+    .amt.out{color:#fca5a5}
+
+    /* Sections */
+    h2{margin:10px 0 8px;font-size: clamp(16px, 3.8vw, 22px)}
+    h3{margin:6px 0 6px;font-size: clamp(15px, 3.5vw, 20px)}
+    .section{padding:14px}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:var(--glass);color:var(--text);cursor:pointer}
+    .btn:hover{border-color:var(--ring); box-shadow:0 0 0 3px rgba(59,130,246,.25)}
+
+    /* Footer */
+    footer{color:var(--muted);font-size:12px;text-align:center;padding:24px}
+
+    /* Animations */
+    .fade-in{opacity:0; transform: translateY(6px); animation: fade 600ms ease forwards}
+    .fade-in[data-d="2"]{animation-delay:.08s}
+    .fade-in[data-d="3"]{animation-delay:.16s}
+    .fade-in[data-d="4"]{animation-delay:.24s}
+    .fade-in[data-d="5"]{animation-delay:.32s}
+    @keyframes fade { to{ opacity:1; transform:none } }
+
+    /* Responsive */
+    @media (min-width: 860px){
+      .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+      .stack-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="head-inner container">
+      <div class="title">Pengeluaran Inti <span class="brand">E‑Buyur Market</span></div>
+      <div class="pill" id="todayInfo" title="Tanggal / zona waktu">📅</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ====== SUMMARY ====== -->
+    <section class="grid section">
+      <div class="stats">
+        <div class="card stat fade-in" data-d="1"><div class="pad">
+          <div class="label">Pemasukan (realisasi)</div>
+          <div class="value" id="incomeTotal">—</div>
+        </div></div>
+        <div class="card stat fade-in" data-d="2"><div class="pad">
+          <div class="label">Pengeluaran (realisasi)</div>
+          <div class="value" id="expenseTotal">—</div>
+        </div></div>
+        <div class="card stat fade-in" data-d="3"><div class="pad">
+          <div class="label">Saldo dihitung saat ini</div>
+          <div class="value" id="currentBalance">—</div>
+        </div></div>
+        <div class="card stat fade-in" data-d="4"><div class="pad">
+          <div class="label">Proyeksi sisa (pakai saldo dihitung)</div>
+          <div class="value" id="projectedBalanceCalc">—</div>
+        </div></div>
+      </div>
+
+      <div class="stack-2" style="margin-top:14px">
+        <div class="card fade-in"><div class="pad">
+          <div class="row" style="margin-bottom:10px">
+            <h3 class="row">Komposisi Realisasi</h3>
+            <span class="chip">dihitung otomatis</span>
+          </div>
+          <canvas id="realizedChart" height="220" aria-label="Donat realisasi"></canvas>
+        </div></div>
+        <div class="card fade-in" data-d="2"><div class="pad">
+          <div class="row" style="margin-bottom:10px">
+            <h3 class="row">Rencana September 2025</h3>
+            <span class="chip upcoming">akan datang</span>
+          </div>
+          <canvas id="upcomingChart" height="220" aria-label="Donat rencana"></canvas>
+        </div></div>
+      </div>
+
+      <!-- NEW: extra charts row -->
+      <div class="stack-2" style="margin-top:14px">
+        <div class="card fade-in" data-d="3"><div class="pad">
+          <div class="row" style="margin-bottom:10px">
+            <h3 class="row">Saldo dari waktu ke waktu</h3>
+            <span class="chip">realisasi vs proyeksi</span>
+          </div>
+          <canvas id="balanceLine" height="240" aria-label="Garis saldo"></canvas>
+        </div></div>
+        <div class="card fade-in" data-d="4"><div class="pad">
+          <div class="row" style="margin-bottom:10px">
+            <h3 class="row">Kategori Belanja</h3>
+            <span class="chip">realisasi vs rencana</span>
+          </div>
+          <canvas id="categoryBar" height="240" aria-label="Bar kategori"></canvas>
+        </div></div>
+      </div>
+
+      <div class="card fade-in" data-d="3" style="margin-top:14px"><div class="pad">
+        <div class="row" style="gap:10px; flex-wrap: wrap">
+          <div class="chip" title="Saldo versi percakapan">
+            <strong>Saldo manual (versi chat):</strong>&nbsp;<span id="manualBalText">—</span>
+          </div>
+          <button class="btn" id="applyManualBtn" title="Sesuaikan agar cocok dengan angka manual Anda">
+            ✨ Samakan saldo dengan angka manual (buat penyesuaian)
+          </button>
+          <div class="chip" id="afterManual" style="display:none"></div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- ====== REALIZED ====== -->
+    <section class="section fade-in">
+      <h2>Transaksi — <span class="chip">Sudah Terjadi</span></h2>
+      <div class="card"><div class="pad">
+        <div class="list" id="realizedList"></div>
+      </div></div>
+    </section>
+
+    <!-- ====== UPCOMING ====== -->
+    <section class="section fade-in" data-d="2">
+      <h2>Pengeluaran — <span class="chip upcoming">Akan Datang (September 2025)</span></h2>
+      <div class="card"><div class="pad">
+        <div class="list" id="upcomingList"></div>
+        <div class="row" style="margin-top:10px">
+          <div class="chip upcoming"><strong>Total Rencana:</strong>&nbsp;<span id="upcomingTotal">—</span></div>
+          <div class="chip"><strong>Proyeksi sisa (pakai saldo manual):</strong>&nbsp;<span id="projectedBalanceManual">—</span></div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- ====== VALIDATION NOTES ====== -->
+    <section class="section fade-in" data-d="3">
+      <details class="card">
+        <summary class="pad" style="cursor:pointer"><strong>Catatan Validasi Otomatis</strong> — klik untuk lihat selisih vs angka manual di chat</summary>
+        <div class="pad" id="validationNotes"></div>
+      </details>
+    </section>
+
+    <footer>
+      Dibuat untuk E‑Buyur Market — mobile‑first, siap dipasang di GitHub Pages. &middot; <a href="#" id="exportJson" style="color:#93c5fd">Unduh JSON data</a>
+    </footer>
+  </main>
+
+<script>
+// Pastikan Chart.js sudah siap sebelum inisialisasi UI
+function initFinanceApp(){
+  // ====== DATA (edit di sini bila perlu) ======
+  const realized = [
+    { date: '2025-08-01', type: 'income',  amount: 1500000, note: 'Universitas An Nuur (Uang pertama) — tanggal perkiraan' },
+    { date: '2025-08-07', type: 'expense', amount: 387390,  note: 'Claude OPUS 4.1' },
+    { date: '2025-08-08', type: 'expense', amount: 331890,  note: 'GPT 5 Plus' },
+    { date: '2025-08-14', type: 'income',  amount: 782000,  note: 'Mar Atus' },
+    { date: '2025-08-14', type: 'expense', amount: 276999,  note: 'Google Colab Pro' },
+    { date: '2025-08-18', type: 'income',  amount: 280000,  note: 'Sinta (iuran)' },
+    { date: '2025-08-20', type: 'expense', amount: 128000,  note: '100 token GPU A100 (Shopee)' },
+    { date: '2025-08-22', type: 'expense', amount: 25000,   note: 'Google One 2TB, Gemini Pro 1 bulan (Shopee)' },
+    { date: '2025-08-29', type: 'expense', amount: 66000,   note: 'Iklan konten' },
+    { date: '2025-09-04', type: 'income',  amount: 1500000, note: 'Bu Dita' },
+    { date: '2025-09-07', type: 'expense', amount: 396948,  note: 'RAM 8GB 3200 VGEN PLATINUM' },
+  ];
+  const upcoming = [
+    { date: '2025-09-10', type: 'expense', amount: 331390, note: 'GPT Plus (September)' },
+    { date: '2025-09-10', type: 'expense', amount: 128000, note: 'Token GPU A100 (Google Colab)' },
+    { date: '2025-09-12', type: 'expense', amount: 205000, note: 'Cloud Hosting IDCloudhost — Elite Pro (per bulan)' },
+    { date: '2025-09-12', type: 'expense', amount: 185000, note: 'Domain ebuyurmarket.com (.com)' },
+    { date: '2025-09-12', type: 'expense', amount: 42900,  note: 'PPN domain ebuyurmarket.com' },
+  ];
+  const manualBalanceFromChat = 1667082;
+  const userSnapshots = [
+    { label: '14 Agustus 2025 (setelah transaksi)', date: '2025-08-14', stated: 505001 },
+    { label: '22 Agustus 2025', date: '2025-08-22', stated: 630000 },
+    { label: '29 Agustus 2025', date: '2025-08-29', stated: 564000 },
+    { label: '04 September 2025 (setelah +1,5jt)', date: '2025-09-04', stated: 2064000 },
+    { label: '07 September 2025 (setelah -396.948)', date: '2025-09-07', stated: 1667082 },
+  ];
+
+  // ====== Helpers ======
+  const IDR = n => new Intl.NumberFormat('id-ID',{ style:'currency', currency:'IDR', maximumFractionDigits: 0 }).format(n);
+  const parseD = s => new Date(s + 'T00:00:00+07:00'); // WIB
+  const fmtDate = s => new Intl.DateTimeFormat('id-ID',{ dateStyle:'medium' }).format(parseD(s));
+  function sum(list, pred){ return list.filter(pred).reduce((a,b)=>a + (b.amount||0), 0); }
+  function balanceUntil(dateISO){
+    const d = parseD(dateISO);
+    const slice = realized.filter(t => parseD(t.date) <= d);
+    const inc = sum(slice, x=>x.type==='income');
+    const exp = sum(slice, x=>x.type==='expense');
+    return inc - exp;
+  }
+  const palette = ['#22c55e','#ef4444','#f59e0b','#06b6d4','#3b82f6','#a78bfa','#f472b6','#10b981'];
+  const gridStyle = { color:'rgba(148,163,184,0.15)' };
+
+  // ====== Compute dasar ======
+  realized.sort((a,b)=> a.date.localeCompare(b.date));
+  upcoming.sort((a,b)=> a.date.localeCompare(b.date));
+  const incomeTotal = sum(realized, x=>x.type==='income');
+  const expenseTotal = sum(realized, x=>x.type==='expense');
+  const currentBalanceCalc = incomeTotal - expenseTotal;
+  const upcomingTotal = sum(upcoming, _=>true);
+  const projectedCalc = currentBalanceCalc - upcomingTotal;
+  const projectedManual = manualBalanceFromChat - upcomingTotal;
+
+  // ====== Render header stats ======
+  document.getElementById('incomeTotal').textContent = IDR(incomeTotal);
+  document.getElementById('expenseTotal').textContent = IDR(expenseTotal);
+  document.getElementById('currentBalance').textContent = IDR(currentBalanceCalc);
+  document.getElementById('projectedBalanceCalc').textContent = IDR(projectedCalc);
+  document.getElementById('manualBalText').textContent = IDR(manualBalanceFromChat);
+  const today = new Date();
+  const fmtHead = new Intl.DateTimeFormat('id-ID',{ dateStyle:'full', timeStyle:'short', timeZone:'Asia/Jakarta' });
+  document.getElementById('todayInfo').textContent = '📅 ' + fmtHead.format(today) + ' WIB';
+
+  // ====== Render lists ======
+  const realizedList = document.getElementById('realizedList');
+  realized.forEach((t,i)=>{
+    const li = document.createElement('div'); li.className='item'; li.style.animationDelay = (i*35)+'ms';
+    const isInc = t.type==='income';
+    li.innerHTML = `
+      <div>
+        <div class="meta">
+          <span class="dot" style="background:${isInc?'#22c55e':'#ef4444'}"></span>
+          <span>${fmtDate(t.date)}</span>
+          <span class="chip ${isInc?'income':'expense'}">${isInc?'Pemasukan':'Pengeluaran'}</span>
+        </div>
+        <div class="note">${t.note}</div>
+      </div>
+      <div class="amt ${isInc?'in':'out'}">${IDR(t.amount)}</div>`;
+    realizedList.appendChild(li);
+  });
+  const upcomingList = document.getElementById('upcomingList');
+  upcoming.forEach((t,i)=>{
+    const li = document.createElement('div'); li.className='item'; li.style.animationDelay = (i*35)+'ms';
+    li.innerHTML = `
+      <div>
+        <div class="meta">
+          <span class="dot" style="background:#f59e0b"></span>
+          <span>${fmtDate(t.date)}</span>
+          <span class="chip upcoming">Rencana</span>
+        </div>
+        <div class="note">${t.note}</div>
+      </div>
+      <div class="amt out">${IDR(t.amount)}</div>`;
+    upcomingList.appendChild(li);
+  });
+  document.getElementById('upcomingTotal').textContent = IDR(upcomingTotal);
+  document.getElementById('projectedBalanceManual').textContent = IDR(projectedManual);
+
+  // ====== Validation notes ======
+  const v = document.getElementById('validationNotes');
+  const ul = document.createElement('ul'); ul.style.margin='0'; ul.style.padding='0 0 0 18px';
+  userSnapshots.forEach(s=>{
+    const calc = balanceUntil(s.date);
+    const li = document.createElement('li'); li.style.margin='8px 0';
+    const diff = s.stated - calc; // manual - calc
+    const status = Math.abs(diff) < 50 ? '✅ sesuai' : '⚠️ beda ' + IDR(Math.abs(diff));
+    li.innerHTML = `<strong>${s.label}:</strong> manual ${IDR(s.stated)} vs hitungan ${IDR(calc)} → ${status}`;
+    ul.appendChild(li);
+  });
+  v.appendChild(ul);
+  const finalDiff = manualBalanceFromChat - currentBalanceCalc;
+  const p = document.createElement('p'); p.style.color='var(--muted)'; p.style.marginTop='10px';
+  p.innerHTML = `Selisih saldo manual vs dihitung saat ini: <strong>${IDR(Math.abs(finalDiff))}</strong> (${finalDiff>=0?'+':''}${IDR(finalDiff)}). `+
+                `Jika ingin menyamakan dengan angka manual, klik tombol penyesuaian di atas.`;
+  v.appendChild(p);
+
+  // ====== Apply manual adjustment ======
+  document.getElementById('applyManualBtn').addEventListener('click', ()=>{
+    const diff = manualBalanceFromChat - currentBalanceCalc;
+    const afterManual = document.getElementById('afterManual');
+    if(Math.abs(diff) < 50){
+      afterManual.style.display='inline-flex';
+      afterManual.textContent = 'Saldo sudah sesuai ('+IDR(currentBalanceCalc)+')';
+      return;
+    }
+    const adj = { date: new Date().toISOString().slice(0,10), type: diff>=0? 'income':'expense', amount: Math.abs(diff), note: 'Penyesuaian saldo agar cocok dengan angka manual' };
+    realized.push(adj);
+    location.reload();
+  });
+
+  // ====== CHARTS ======
+  // 1) Donat Realisasi
+  const ctx1 = document.getElementById('realizedChart');
+  new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['Pemasukan','Pengeluaran'],
+      datasets: [{ data: [incomeTotal, expenseTotal], backgroundColor: [palette[0], palette[1]], borderWidth:0 }]
+    },
+    options: { responsive:true, cutout:'62%', plugins:{ legend:{ labels:{ color:'#cbd5e1' } } } }
+  });
+
+  // 2) Donat Rencana (per item)
+  const ctx2 = document.getElementById('upcomingChart');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: upcoming.map(u=>u.note),
+      datasets: [{ data: upcoming.map(u=>u.amount), backgroundColor: upcoming.map((_,i)=>palette[(i+2)%palette.length]), borderWidth:0 }]
+    },
+    options: { responsive:true, cutout:'50%', plugins:{ legend:{ labels:{ color:'#cbd5e1' } } } }
+  });
+
+  // 3) Garis Saldo: realisasi vs proyeksi
+  const allDates = Array.from(new Set([...realized.map(t=>t.date), ...upcoming.map(t=>t.date)])).sort();
+  function balanceAt(dateISO, includeUpcoming=false){
+    const d = parseD(dateISO);
+    const rInc = sum(realized.filter(t=>parseD(t.date)<=d), x=>x.type==='income');
+    const rExp = sum(realized.filter(t=>parseD(t.date)<=d), x=>x.type==='expense');
+    let bal = rInc - rExp;
+    if(includeUpcoming){
+      const upExp = sum(upcoming.filter(t=>parseD(t.date)<=d), _=>true);
+      bal -= upExp;
+    }
+    return bal;
+  }
+  const lineLabels = allDates.map(d=>fmtDate(d));
+  const realizedSeries = allDates.map(d=>balanceAt(d,false));
+  const projectedSeries = allDates.map(d=>balanceAt(d,true));
+  const ctxLine = document.getElementById('balanceLine');
+  new Chart(ctxLine, {
+    type:'line',
+    data:{
+      labels: lineLabels,
+      datasets:[
+        { label:'Saldo (realisasi)', data: realizedSeries, tension:.35, borderWidth:2, pointRadius:2, borderColor: palette[5], fill:false },
+        { label:'Saldo proyeksi (setelah rencana)', data: projectedSeries, tension:.35, borderWidth:2, pointRadius:2, borderDash:[6,6], borderColor: palette[2], fill:false }
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'#cbd5e1' } }, tooltip:{ callbacks:{ label: ctx => IDR(ctx.parsed.y) } } },
+      scales:{ x:{ ticks:{ color:'#cbd5e1' }, grid: gridStyle }, y:{ ticks:{ color:'#cbd5e1', callback: v=>IDR(v) }, grid: gridStyle } }
+    }
+  });
+
+  // 4) Bar Kategori Belanja: realisasi vs rencana
+  const categoryMap = [
+    { key:'AI Tools', match:/claude|gpt|gemini/i },
+    { key:'GPU/Token', match:/token|a100|gpu/i },
+    { key:'Langganan/Cloud', match:/colab|google one|hosting|idcloudhost/i },
+    { key:'Perangkat', match:/ram|vgen|ssd|hdd|laptop/i },
+    { key:'Iklan', match:/iklan/i },
+    { key:'Domain & PPN', match:/domain|ppn/i },
+    { key:'Lainnya', match:/.*/ }
+  ];
+  function classify(note){
+    const hit = categoryMap.find(c=>c.match.test(note));
+    return hit? hit.key : 'Lainnya';
+  }
+  const cats = Array.from(new Set([...categoryMap.map(c=>c.key)]));
+  const realizedByCat = Object.fromEntries(cats.map(c=>[c,0]));
+  realized.filter(t=>t.type==='expense').forEach(t=>{ realizedByCat[classify(t.note)] += t.amount; });
+  const upcomingByCat = Object.fromEntries(cats.map(c=>[c,0]));
+  upcoming.forEach(t=>{ upcomingByCat[classify(t.note)] += t.amount; });
+  const catLabels = cats;
+  const ctxBar = document.getElementById('categoryBar');
+  new Chart(ctxBar, {
+    type:'bar',
+    data:{
+      labels: catLabels,
+      datasets:[
+        { label:'Realisasi', data: catLabels.map(c=>realizedByCat[c]), backgroundColor: palette[1] },
+        { label:'Rencana', data: catLabels.map(c=>upcomingByCat[c]), backgroundColor: palette[2] }
+      ]
+    },
+    options:{
+      responsive:true,
+      indexAxis:'y',
+      plugins:{ legend:{ labels:{ color:'#cbd5e1' } }, tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: ${IDR(ctx.parsed.x)}` } } },
+      scales:{ x:{ ticks:{ color:'#cbd5e1', callback:v=>IDR(v) }, grid: gridStyle }, y:{ ticks:{ color:'#cbd5e1' }, grid: gridStyle } }
+    }
+  });
+
+  // Export JSON
+  document.getElementById('exportJson').addEventListener('click', (e)=>{
+    e.preventDefault();
+    const blob = new Blob([JSON.stringify({ realized, upcoming }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='ebuyur_finance.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function ensureChartThenInit(){
+  if (window.Chart) { initFinanceApp(); return; }
+  let waited = 0; const step = 50; const max = 6000;
+  const iv = setInterval(()=>{
+    waited += step;
+    if (window.Chart){ clearInterval(iv); initFinanceApp(); }
+    else if (waited>=max){ clearInterval(iv); console.error('Chart.js gagal dimuat'); }
+  }, step);
+}
+
+// Jalankan setelah DOM siap
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', ensureChartThenInit);
+} else {
+  ensureChartThenInit();
+}
+</script>
+</body>
+</html>
