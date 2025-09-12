@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Keuangan E‑Buyur Market</title>
-  <meta name="description" content="Ringkasan pemasukan, pengeluaran, dan proyeksi saldo E‑Buyur Market. Mobile‑first, siap GitHub Pages." />
+  <title>Keuangan E-Buyur Market</title>
+  <meta name="description" content="Ringkasan pemasukan, pengeluaran, dan proyeksi saldo E-Buyur Market. Mobile-first, siap GitHub Pages." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -117,7 +117,7 @@
   <div class="bg-ornament" aria-hidden="true"></div>
   <header class="app-header">
     <div class="head-inner container">
-      <div class="title">Keuangan <span class="brand">E‑Buyur Market</span></div>
+      <div class="title">Keuangan <span class="brand">E-Buyur Market</span></div>
       <div class="pill" id="todayInfo" title="Tanggal / zona waktu">📅</div>
     </div>
   </header>
@@ -221,7 +221,7 @@
     </section>
 
     <footer>
-      Dibuat untuk E‑Buyur Market — mobile‑first, siap dipasang di GitHub Pages. &middot; <a href="#" id="exportJson" style="color:#93c5fd">Unduh JSON data</a>
+      Dibuat untuk E-Buyur Market — mobile-first, siap dipasang di GitHub Pages. &middot; <a href="#" id="exportJson" style="color:#93c5fd">Unduh JSON data</a>
     </footer>
   </main>
 
@@ -240,13 +240,22 @@ function initFinanceApp(){
     { date: '2025-08-29', type: 'expense', amount: 66000,   note: 'Iklan konten' },
     { date: '2025-09-04', type: 'income',  amount: 1500000, note: 'Bu Dita' },
     { date: '2025-09-07', type: 'expense', amount: 396948,  note: 'RAM 8GB 3200 VGEN PLATINUM' },
+
+    // === Dipindah dari "akan datang" karena sudah terlaksana ===
+    { date: '2025-09-10', type: 'expense', amount: 331390,  note: 'GPT Plus (September)' },
+    { date: '2025-09-12', type: 'expense', amount: 205000,  note: 'Cloud Hosting IDCloudhost — Elite Pro (per bulan)' },
+    { date: '2025-09-12', type: 'expense', amount: 185000,  note: 'Domain ebuyurmarket.com (.com)' },
+    { date: '2025-09-12', type: 'expense', amount: 42900,   note: 'PPN domain ebuyurmarket.com' },
+
+    // === Tambahan realisasi baru ===
+    { date: '2025-09-12', type: 'expense', amount: 400000,  note: 'Fee develop (Devin)' },
   ];
   const upcoming = [
-    { date: '2025-09-10', type: 'expense', amount: 331390, note: 'GPT Plus (September)' },
+    // Tersisa yang belum terlaksana
     { date: '2025-09-10', type: 'expense', amount: 128000, note: 'Token GPU A100 (Google Colab)' },
-    { date: '2025-09-12', type: 'expense', amount: 205000, note: 'Cloud Hosting IDCloudhost — Elite Pro (per bulan)' },
-    { date: '2025-09-12', type: 'expense', amount: 185000, note: 'Domain ebuyurmarket.com (.com)' },
-    { date: '2025-09-12', type: 'expense', amount: 42900,  note: 'PPN domain ebuyurmarket.com' },
+
+    // Tambahan rencana baru
+    { date: '2025-09-22', type: 'expense', amount: 25000,  note: 'Storage 2TB (bulan ke-2)' },
   ];
   const manualBalanceFromChat = 1667082;
   const userSnapshots = [
