@@ -207,7 +207,8 @@
         <div class="list" id="upcomingList"></div>
         <div class="row" style="margin-top:10px">
           <div class="chip upcoming"><strong>Total Rencana:</strong>&nbsp;<span id="upcomingTotal">—</span></div>
-          <div class="chip"><strong>Proyeksi sisa (pakai saldo manual):</strong>&nbsp;<span id="projectedBalanceManual">—</span></div>
+          <!-- UBAH LABEL & ID TETAP, TAPI NILAINYA NANTI DIISI projectedCalc -->
+          <div class="chip"><strong>Proyeksi sisa (pakai saldo dihitung):</strong>&nbsp;<span id="projectedBalanceManual">—</span></div>
         </div>
       </div></div>
     </section>
@@ -241,13 +242,13 @@ function initFinanceApp(){
     { date: '2025-09-04', type: 'income',  amount: 1500000, note: 'Bu Dita' },
     { date: '2025-09-07', type: 'expense', amount: 396948,  note: 'RAM 8GB 3200 VGEN PLATINUM' },
 
-    // === Dipindah dari "akan datang" karena sudah terlaksana ===
+    // === Dipindah dari "akan datang" karena sudah terlaksana
     { date: '2025-09-10', type: 'expense', amount: 331390,  note: 'GPT Plus (September)' },
     { date: '2025-09-12', type: 'expense', amount: 205000,  note: 'Cloud Hosting IDCloudhost — Elite Pro (per bulan)' },
     { date: '2025-09-12', type: 'expense', amount: 185000,  note: 'Domain ebuyurmarket.com (.com)' },
     { date: '2025-09-12', type: 'expense', amount: 42900,   note: 'PPN domain ebuyurmarket.com' },
 
-    // === Tambahan realisasi baru ===
+    // === Tambahan realisasi baru
     { date: '2025-09-12', type: 'expense', amount: 400000,  note: 'Fee develop (Devin)' },
   ];
   const upcoming = [
@@ -342,7 +343,8 @@ function initFinanceApp(){
     upcomingList.appendChild(li);
   });
   document.getElementById('upcomingTotal').textContent = IDR(upcomingTotal);
-  document.getElementById('projectedBalanceManual').textContent = IDR(projectedManual);
+  // >>> GANTI: pakai projectedCalc agar mengikuti akumulasi pengeluaran yang sudah terjadi
+  document.getElementById('projectedBalanceManual').textContent = IDR(projectedCalc);
 
   // ====== Validation notes ======
   const v = document.getElementById('validationNotes');
