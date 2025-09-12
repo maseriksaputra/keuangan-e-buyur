@@ -31,7 +31,6 @@
       color:var(--text); background: var(--bg);
     }
     .container{max-width:980px;margin-inline:auto;padding:18px;}
-    /* Decorative fixed background to avoid shading bugs */
     .bg-ornament{position:fixed; inset:0; z-index:-1; pointer-events:none; background:
       radial-gradient(700px 420px at -10% -10%, rgba(37,99,235,.20), transparent 60%),
       radial-gradient(620px 380px at 110% 0%, rgba(34,197,94,.16), transparent 55%),
@@ -45,7 +44,6 @@
       }
     }
 
-    /* Header */
     .app-header{
       position:sticky; top:0; z-index:20; backdrop-filter: saturate(120%) blur(8px);
       background: linear-gradient(180deg, rgba(11,18,32,.75), rgba(11,18,32,.55));
@@ -57,7 +55,6 @@
     .pill{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:var(--glass);border:1px solid rgba(255,255,255,.08);font-size:12px;color:var(--muted)}
     .pill svg{opacity:.9}
 
-    /* Cards & layout */
     .grid{display:grid;gap:14px}
     .grid.cols{grid-template-columns: repeat(12,minmax(0,1fr))}
     .card{
@@ -75,7 +72,6 @@
     .chip.internal{background: rgba(59,130,246,.12); color:#bfdbfe}
     .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 
-    /* List */
     .list{display:flex;flex-direction:column}
     .item{display:grid;grid-template-columns: 1fr auto; gap:8px; padding:12px 4px; border-bottom:1px dashed rgba(255,255,255,.07)}
     .item:last-child{border-bottom:none}
@@ -86,19 +82,15 @@
     .amt.in{color:#86efac}
     .amt.out{color:#fca5a5}
 
-    /* Sections */
     h2{margin:10px 0 8px;font-size: clamp(16px, 3.8vw, 22px)}
     h3{margin:6px 0 6px;font-size: clamp(15px, 3.5vw, 20px)}
     .section{padding:14px}
 
-    /* Buttons */
     .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:var(--glass);color:var(--text);cursor:pointer}
     .btn:hover{border-color:var(--ring); box-shadow:0 0 0 3px rgba(59,130,246,.25)}
 
-    /* Footer */
     footer{color:var(--muted);font-size:12px;text-align:center;padding:24px}
 
-    /* Animations */
     .fade-in{opacity:0; transform: translateY(6px); animation: fade 600ms ease forwards}
     .fade-in[data-d="2"]{animation-delay:.08s}
     .fade-in[data-d="3"]{animation-delay:.16s}
@@ -106,15 +98,17 @@
     .fade-in[data-d="5"]{animation-delay:.32s}
     @keyframes fade { to{ opacity:1; transform:none } }
 
-    /* Responsive */
     @media (min-width: 860px){
       .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
       .stack-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     }
 
-    /* kecilkan util untuk angka di chip agar lebih terbaca */
+    /* util angka di chip */
     .chip .num{font-weight:800; letter-spacing:.2px}
     .chip .muted{color:var(--muted); font-weight:500}
+
+    /* footer sisa saldo di bawah kartu upcoming */
+    .footer-row{display:flex; justify-content:flex-end; margin-top:10px}
   </style>
 </head>
 <body>
@@ -165,7 +159,6 @@
         </div></div>
       </div>
 
-      <!-- NEW: extra charts row -->
       <div class="stack-2" style="margin-top:14px">
         <div class="card fade-in" data-d="3"><div class="pad">
           <div class="row" style="margin-bottom:10px">
@@ -209,12 +202,21 @@
       <h2>Pengeluaran — <span class="chip upcoming">Akan Datang (September 2025)</span></h2>
       <div class="card"><div class="pad">
         <div class="list" id="upcomingList"></div>
+
+        <!-- ringkasan atas (tetap) -->
         <div class="row" style="margin-top:10px; flex-wrap:wrap; gap:10px">
           <div class="chip"><strong>Saldo saat ini (setelah realisasi):</strong>&nbsp;<span class="num" id="currentBalanceDup">—</span></div>
           <div class="chip upcoming"><strong>Total Rencana:</strong>&nbsp;<span class="num" id="upcomingTotal">—</span></div>
           <div class="chip">
             <strong>Proyeksi sisa:</strong>&nbsp;<span class="num" id="projectedBalanceManual">—</span>
             &nbsp;<span class="muted">(= saldo saat ini − total rencana)</span>
+          </div>
+        </div>
+
+        <!-- SISA di posisi bawah kanan -->
+        <div class="footer-row">
+          <div class="chip" style="background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.25)">
+            <strong>Sisa saldo setelah rencana:</strong>&nbsp;<span class="num" id="projectedBottom">—</span>
           </div>
         </div>
       </div></div>
@@ -236,7 +238,7 @@
 <script>
 // Pastikan Chart.js sudah siap sebelum inisialisasi UI
 function initFinanceApp(){
-  // ====== DATA (edit di sini bila perlu) ======
+  // ====== DATA ======
   const realized = [
     { date: '2025-08-01', type: 'income',  amount: 1500000, note: 'Universitas An Nuur (Uang pertama) — tanggal perkiraan' },
     { date: '2025-08-07', type: 'expense', amount: 387390,  note: 'Claude OPUS 4.1' },
@@ -249,22 +251,20 @@ function initFinanceApp(){
     { date: '2025-09-04', type: 'income',  amount: 1500000, note: 'Bu Dita' },
     { date: '2025-09-07', type: 'expense', amount: 396948,  note: 'RAM 8GB 3200 VGEN PLATINUM' },
 
-    // === Dipindah dari "akan datang" karena sudah terlaksana ===
+    /* Sudah terlaksana (dipindah dari rencana) */
     { date: '2025-09-10', type: 'expense', amount: 331390,  note: 'GPT Plus (September)' },
     { date: '2025-09-12', type: 'expense', amount: 205000,  note: 'Cloud Hosting IDCloudhost — Elite Pro (per bulan)' },
     { date: '2025-09-12', type: 'expense', amount: 185000,  note: 'Domain ebuyurmarket.com (.com)' },
     { date: '2025-09-12', type: 'expense', amount: 42900,   note: 'PPN domain ebuyurmarket.com' },
 
-    // === Tambahan realisasi baru ===
+    /* Tambahan realisasi */
     { date: '2025-09-12', type: 'expense', amount: 400000,  note: 'Fee develop (Devin)' },
   ];
   const upcoming = [
-    // Tersisa yang belum terlaksana
     { date: '2025-09-10', type: 'expense', amount: 128000, note: 'Token GPU A100 (Google Colab)' },
-
-    // Tambahan rencana baru
     { date: '2025-09-22', type: 'expense', amount: 25000,  note: 'Storage 2TB (bulan ke-2)' },
   ];
+
   const manualBalanceFromChat = 1667082;
   const userSnapshots = [
     { label: '14 Agustus 2025 (setelah transaksi)', date: '2025-08-14', stated: 505001 },
@@ -289,17 +289,17 @@ function initFinanceApp(){
   const palette = ['#22c55e','#ef4444','#f59e0b','#06b6d4','#3b82f6','#a78bfa','#f472b6','#10b981'];
   const gridStyle = { color:'rgba(148,163,184,0.15)' };
 
-  // ====== Compute dasar ======
+  // ====== Compute ======
   realized.sort((a,b)=> a.date.localeCompare(b.date));
   upcoming.sort((a,b)=> a.date.localeCompare(b.date));
   const incomeTotal = sum(realized, x=>x.type==='income');
   const expenseTotal = sum(realized, x=>x.type==='expense');
   const currentBalanceCalc = incomeTotal - expenseTotal;
   const upcomingTotal = sum(upcoming, _=>true);
-  const projectedCalc = currentBalanceCalc - upcomingTotal;
+  const projectedCalc = currentBalanceCalc - upcomingTotal;   // dipakai untuk SISA
   const projectedManual = manualBalanceFromChat - upcomingTotal;
 
-  // ====== Render header stats ======
+  // ====== Header stats ======
   document.getElementById('incomeTotal').textContent = IDR(incomeTotal);
   document.getElementById('expenseTotal').textContent = IDR(expenseTotal);
   document.getElementById('currentBalance').textContent = IDR(currentBalanceCalc);
@@ -309,7 +309,7 @@ function initFinanceApp(){
   const fmtHead = new Intl.DateTimeFormat('id-ID',{ dateStyle:'full', timeStyle:'short', timeZone:'Asia/Jakarta' });
   document.getElementById('todayInfo').textContent = '📅 ' + fmtHead.format(today) + ' WIB';
 
-  // ====== Render lists ======
+  // ====== Daftar ======
   const realizedList = document.getElementById('realizedList');
   realized.forEach((t,i)=>{
     const li = document.createElement('div'); li.className='item'; li.style.animationDelay = (i*35)+'ms';
@@ -334,6 +334,7 @@ function initFinanceApp(){
       ${amountHtml}`;
     realizedList.appendChild(li);
   });
+
   const upcomingList = document.getElementById('upcomingList');
   upcoming.forEach((t,i)=>{
     const li = document.createElement('div'); li.className='item'; li.style.animationDelay = (i*35)+'ms';
@@ -350,13 +351,13 @@ function initFinanceApp(){
     upcomingList.appendChild(li);
   });
 
-  // Saldo saat ini (duplikat di bagian bawah), total rencana, dan proyeksi
+  // Ringkasan & SISA di kartu Upcoming
   document.getElementById('currentBalanceDup').textContent = IDR(currentBalanceCalc);
-  document.getElementById('upcomingTotal').textContent = IDR(upcomingTotal);
-  // pakai projectedCalc agar mengikuti akumulasi pengeluaran yang sudah terjadi
+  document.getElementById('upcomingTotal').textContent    = IDR(upcomingTotal);
   document.getElementById('projectedBalanceManual').textContent = IDR(projectedCalc);
+  document.getElementById('projectedBottom').textContent  = IDR(projectedCalc);
 
-  // ====== Validation notes ======
+  // ====== Validation ======
   const v = document.getElementById('validationNotes');
   const ul = document.createElement('ul'); ul.style.margin='0'; ul.style.padding='0 0 0 18px';
   userSnapshots.forEach(s=>{
@@ -389,31 +390,22 @@ function initFinanceApp(){
   });
 
   // ====== CHARTS ======
-  // 1) Donat Realisasi
   const ctx1 = document.getElementById('realizedChart');
   new Chart(ctx1, {
     type: 'doughnut',
-    data: {
-      labels: ['Pemasukan','Pengeluaran'],
-      datasets: [{ data: [incomeTotal, expenseTotal], backgroundColor: [palette[0], palette[1]], borderWidth:0 }]
-    },
+    data: { labels: ['Pemasukan','Pengeluaran'], datasets: [{ data: [incomeTotal, expenseTotal], backgroundColor: [palette[0], palette[1]], borderWidth:0 }] },
     options: { responsive:true, cutout:'62%', plugins:{ legend:{ labels:{ color:'#cbd5e1' } } } }
   });
 
-  // 2) Donat Rencana (per item)
   const ctx2 = document.getElementById('upcomingChart');
   new Chart(ctx2, {
     type: 'doughnut',
-    data: {
-      labels: upcoming.map(u=>u.note),
-      datasets: [{ data: upcoming.map(u=>u.amount), backgroundColor: upcoming.map((_,i)=>palette[(i+2)%palette.length]), borderWidth:0 }]
-    },
+    data: { labels: upcoming.map(u=>u.note), datasets: [{ data: upcoming.map(u=>u.amount), backgroundColor: upcoming.map((_,i)=>palette[(i+2)%palette.length]), borderWidth:0 }] },
     options: { responsive:true, cutout:'50%', plugins:{ legend:{ labels:{ color:'#cbd5e1' } } } }
   });
 
-  // 3) Garis Saldo: realisasi vs proyeksi
   const allDates = Array.from(new Set([...realized.map(t=>t.date), ...upcoming.map(t=>t.date)])).sort();
-  function balanceAt(dateISO, includeUpcoming=false){
+  function sumAt(dateISO, includeUpcoming=false){
     const d = parseD(dateISO);
     const rInc = sum(realized.filter(t=>parseD(t.date)<=d), x=>x.type==='income');
     const rExp = sum(realized.filter(t=>parseD(t.date)<=d), x=>x.type==='expense');
@@ -424,27 +416,23 @@ function initFinanceApp(){
     }
     return bal;
   }
-  const lineLabels = allDates.map(d=>fmtDate(d));
-  const realizedSeries = allDates.map(d=>balanceAt(d,false));
-  const projectedSeries = allDates.map(d=>balanceAt(d,true));
   const ctxLine = document.getElementById('balanceLine');
   new Chart(ctxLine, {
     type:'line',
     data:{
-      labels: lineLabels,
+      labels: allDates.map(d=>fmtDate(d)),
       datasets:[
-        { label:'Saldo (realisasi)', data: realizedSeries, tension:.35, borderWidth:2, pointRadius:2, borderColor: palette[5], fill:false },
-        { label:'Saldo proyeksi (setelah rencana)', data: projectedSeries, tension:.35, borderWidth:2, pointRadius:2, borderDash:[6,6], borderColor: palette[2], fill:false }
+        { label:'Saldo (realisasi)', data: allDates.map(d=>sumAt(d,false)), tension:.35, borderWidth:2, pointRadius:2, borderColor: palette[5], fill:false },
+        { label:'Saldo proyeksi (setelah rencana)', data: allDates.map(d=>sumAt(d,true)), tension:.35, borderWidth:2, pointRadius:2, borderDash:[6,6], borderColor: palette[2], fill:false }
       ]
     },
     options:{
       responsive:true,
       plugins:{ legend:{ labels:{ color:'#cbd5e1' } }, tooltip:{ callbacks:{ label: ctx => IDR(ctx.parsed.y) } } },
-      scales:{ x:{ ticks:{ color:'#cbd5e1' }, grid: gridStyle }, y:{ ticks:{ color:'#cbd5e1', callback: v=>IDR(v) }, grid: gridStyle } }
+      scales:{ x:{ ticks:{ color:'#cbd5e1' }, grid: gridStyle }, y:{ ticks:{ color:'#cbd5e1', callback:v=>IDR(v) }, grid: gridStyle } }
     }
   });
 
-  // 4) Bar Kategori Belanja: realisasi vs rencana
   const categoryMap = [
     { key:'AI Tools', match:/claude|gpt|gemini/i },
     { key:'GPU/Token', match:/token|a100|gpu/i },
@@ -454,24 +442,21 @@ function initFinanceApp(){
     { key:'Domain & PPN', match:/domain|ppn/i },
     { key:'Lainnya', match:/.*/ }
   ];
-  function classify(note){
-    const hit = categoryMap.find(c=>c.match.test(note));
-    return hit? hit.key : 'Lainnya';
-  }
+  function classify(note){ const hit = categoryMap.find(c=>c.match.test(note)); return hit? hit.key : 'Lainnya'; }
   const cats = Array.from(new Set([...categoryMap.map(c=>c.key)]));
   const realizedByCat = Object.fromEntries(cats.map(c=>[c,0]));
   realized.filter(t=>t.type==='expense').forEach(t=>{ realizedByCat[classify(t.note)] += t.amount; });
   const upcomingByCat = Object.fromEntries(cats.map(c=>[c,0]));
   upcoming.forEach(t=>{ upcomingByCat[classify(t.note)] += t.amount; });
-  const catLabels = cats;
+
   const ctxBar = document.getElementById('categoryBar');
   new Chart(ctxBar, {
     type:'bar',
     data:{
-      labels: catLabels,
+      labels: cats,
       datasets:[
-        { label:'Realisasi', data: catLabels.map(c=>realizedByCat[c]), backgroundColor: palette[1] },
-        { label:'Rencana', data: catLabels.map(c=>upcomingByCat[c]), backgroundColor: palette[2] }
+        { label:'Realisasi', data: cats.map(c=>realizedByCat[c]), backgroundColor: palette[1] },
+        { label:'Rencana',   data: cats.map(c=>upcomingByCat[c]), backgroundColor: palette[2] }
       ]
     },
     options:{
@@ -502,7 +487,6 @@ function ensureChartThenInit(){
   }, step);
 }
 
-// Jalankan setelah DOM siap
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', ensureChartThenInit);
 } else {
